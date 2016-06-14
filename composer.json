@@ -1,0 +1,7 @@
+{
+  "name": "AccelerateNetworks/phpax",
+  "description": "A library for working with a Pax credit card terminal.",
+  "require": {
+    "php": "^5.3.3 || ^7.0"
+   }
+}
