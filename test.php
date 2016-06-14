@@ -1,7 +1,7 @@
 <?php
 require "pax.php";
 
-$terminal = new Pax('192.168.2.15');
+$terminal = new Pax('192.168.2.213');
 
 ### Inform customers about our dank memes
 print_r($terminal->make_call('A24', array('Check out our selection of', '', 'Dank Memes!', '30')));
@@ -16,4 +16,4 @@ $args[] = '';
 $args[] = '';
 $args[] = '';
 $args[] = '';
-// print_r($terminal->make_call('T00', $args));
+print_r($terminal->make_call('T00', $args));
