@@ -1,6 +1,15 @@
 {
-  "name": "AccelerateNetworks/phpax",
+  "name": "accelerate-networks/phpax",
   "description": "A library for working with a Pax credit card terminal.",
+  "type": "library",
+  "homepage": "https://github.com/AccelerateNetworks/PHPax",
+  "license": "GPLv3",
+  "authors": [
+    {
+      "name": "Finn Herzfeld",
+      "email": "finn@callpipe.com"
+    }
+  ],
   "require": {
     "php": "^5.3.3 || ^7.0"
    }
