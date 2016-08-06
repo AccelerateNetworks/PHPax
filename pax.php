@@ -43,6 +43,20 @@ class Pax {
     return chr($out);
   }
 
+  public function pad($left, $right, $width=18) {
+    $out = "";
+    if(strlen($left) + strlen($right) > $width) {
+      $out = substr($left, 0, $width-strlen($right)-1)." ".$right;
+    } else {
+      $out = $left;
+      while(strlen($out.$right) < $width) {
+        $out .= " ";
+      }
+      $out .= $right;
+    }
+    return $out;
+  }
+
   public function build_request($command, $args=array(), $debug=false) {
     $args_str = "";
     $processed_args = array();
@@ -63,7 +77,6 @@ class Pax {
 
   private function http_request($query) {
     # TODO: Allow certificate pinning, use certificates at all, etc
-    error_log("WARNING! Instead of verifying the remote certificate any of that 'encryption' shit, we're just doing it in the clear.");
     $client = new Client("http://".$this->host.":".$this->port);
     $request = $client->get("/?".$query);
     $query = $request->getQuery();
@@ -111,7 +124,7 @@ class Pax {
       $out['amount']['cash_back'] = $amount[3];
       $out['amount']['fee'] = $amount[4];
       $out['amount']['tax'] = $amount[5];
-      $out['amount']['balance'] = array($amount[6], $amount[7]);
+      $out['amount']['balance'] = array(intval($amount[6])/100, intval($amount[7])/100);
 
       $account = explode(chr(31), $out['fields'][8]);
       $out['account']['number'] = $account[0];
@@ -139,7 +152,11 @@ class Pax {
       $out['additional'] = array();
       foreach(explode(chr(31), $out['fields'][count($out['fields'])-1]) as $value) {
         $keyvalue = explode("=", $value);
-        $out['additional'][$keyvalue[0]] = $keyvalue[1];
+        if(count($keyvalue) == 2) {
+          $out['additional'][$keyvalue[0]] = $keyvalue[1];
+        } else {
+          $out['additional'][] = $value;
+        }
       }
     }
     return $out;
@@ -209,6 +226,7 @@ class Pax {
     $args = array('01', strval($amount*100), '', '1', '', '', '', '');
     return self::parse_transaction($this->make_call('T00', $args));
   }
+
   public function do_debit($amount) {
     $args = array('01', strval($amount*100), '', '1', '', '', '', '');
     return self::parse_transaction($this->make_call('T02', $args));
@@ -236,5 +254,43 @@ class Pax {
     $trace = array($reference, '', '', $transaction);
     $args = array('16', '', '', $trace, '', '', '', '', '');
     return self::parse_transaction($this->make_call('T00', $args));
+  }
+
+  public function void_debit($reference, $transaction) {
+    $trace = array($reference, '', '', $transaction);
+    $args = array('16', '', '', $trace, '', '', '', '', '');
+    return self::parse_transaction($this->make_call('T02', $args));
+  }
+
+  public function void_ebt($reference, $transaction) {
+    $trace = array($reference, '', '', $transaction);
+    $args = array('16', '', '', $trace, '', '', '', '', '');
+    return self::parse_transaction($this->make_call('T04', $args));
+  }
+
+  public function return_credit($amount) {
+    $args = array('02', strval($amount*100), '', '1', '', '', '', '');
+    return self::parse_transaction($this->make_call('T00', $args));
+  }
+  public function return_debit($amount) {
+    $args = array('02', strval($amount*100), '', '1', '', '', '', '');
+    return self::parse_transaction($this->make_call('T02', $args));
+  }
+  public function return_ebt($amount) {
+    $args = array('02', strval($amount*100), '', '1', '', '', '', '');
+    return self::parse_transaction($this->make_call('T04', $args));
+  }
+
+  public function ebt_balance() {
+    $args = array('23', '', array('', '', '', 'C'), '1', '', '');
+    return self::parse_transaction($this->make_call('T04', $args));
+  }
+
+  public function add_message($msg) {
+    return $this->make_call('A10', array($msg));
+  }
+
+  public function clear_message() {
+    return $this->make_call('A12');
   }
 }
